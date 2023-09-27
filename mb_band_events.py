@@ -1,16 +1,15 @@
 from enum import Enum
+import sys
 import time
 import os
 import subprocess
 import re
 import mbpy.mbtools
 
-from dev_base import mbdev_base
-from action import mb_actions, mbMODE, mbTASK, mb_input_value
+from action import mb_actions, mbMODE, mbTASK
 
-mbKEY = mbdev_base.mbKEY
-
-
+from dev_band import mbdevice
+mbKEY = mbdevice
 
 
 
@@ -23,13 +22,14 @@ class mb_xinput_process():
 
     def __init__(self) -> None:
         global mbKEY
-        self.mode = mbMODE.NORMAL
+        self.actions = mb_actions()
+        # self.mode = mbMODE.NORMAL
         # self.mode_quick = mbMODE.NORMAL
-        self.last_mode_change = 0
+        # self.last_mode_change = 0
         self.dtlastkey = int(time.time()) - 55
         self.keys_value = 0
 
-        self.mb_input = mb_input_value(mbTASK.UNSET, is_input_active=False)
+        # self.mb_input = mb_input_value(mbTASK.UNSET, is_input_active=False)
 
         self.keys = []
         # self.keys = [mbKEY.MENU, mbKEY.MENU, mbKEY.MENU, mbKEY.MENU]
@@ -47,17 +47,11 @@ class mb_xinput_process():
         # if self.devid == None or self.devid == '':
         #     exit()
 
-        # # self.mbKEY = mbKEY
-        # # self.mbKEY = mbdevice.mbKEY
-        # if devname.find("Philips")>-1:
-        #     from dev_headphone import mbdevice
-        #     mbKEY = mbdevice.mbKEY
-        # else:
-        from dev_tablet import mbdevice
         mbKEY = mbdevice.mbKEY
         
-
-        self.main_loop()
+        while True:
+            self.main_loop()
+            time.sleep(11)
 
 
 
@@ -68,9 +62,9 @@ class mb_xinput_process():
         gkey = mbKEY.get_mbKEY(pkey)
         if gkey == mbKEY.IGNORE: return
         
-        if self.mb_input.is_input_active:
-            self.mb_input.process_input(pkey=gkey)
-            return
+        # if self.mb_input.is_input_active:
+        #     self.mb_input.process_input(pkey=gkey)
+        #     return
         
         if int(time.time()) - self.dtlastkey > 15:
             self.keys.clear()
@@ -80,17 +74,30 @@ class mb_xinput_process():
         self.keys.insert(0, gkey)
         print(self.keys)
         
-        if len(self.keys) > 1 and self.keys[1] == mbKEY.MENU and self.keys[0] == mbKEY.MENU: #M3-vol up long : change mode
-            print("change mode")
-            self.mode = mb_actions.change_mode(self.mode)
+        # if len(self.keys) > 1 and self.keys[1] == mbKEY.PLAY and self.keys[0] == mbKEY.PLAY: #M3-vol up long : change mode
+        if self.keys[0] == mbKEY.WATCHFACE_CHANGED:
+            # mb_actions.mpv_toggle_play()
+            mbpy.mbtools.mbwin.send_key("XF86AudioPlay")
+            # if (self.last_mode_change < time.time() - 3):
+            #     self.last_mode_change = time.time()
+            #     self.actions.mode = self.actions.next_mode(self.actions.mode)
             return
         
-        if gkey != mbKEY.MENU: #confirm...
-            self.keys_value += mbKEY.get_key_number(gkey)
-            mb_actions.menu_options(self.keys_value, self.mode, speak=True, execute=False)
+        elif len(self.keys) > 2 and self.keys[2] == mbKEY.MUSIC_CLOSE and self.keys[1] == mbKEY.MUSIC_OPEN and self.keys[0] == mbKEY.MUSIC_CLOSE:
+            if (self.actions.dt_last_execute > time.time() - 600):
+                self.actions.menu_options(101, mbMODE.DYNAMIC, speak=False, execute=True)
+            
+            return
+
+        keynum = mbKEY.get_key_number(gkey)
+        if keynum == 0: return
+
+        if gkey != mbKEY.PLAY: #confirm...
+            self.keys_value += keynum
+            self.actions.menu_options(self.keys_value, self.actions.mode, speak=True, execute=False)
             
         else: 
-            mb_actions.menu_options(self.keys_value, self.mode, speak=False, execute=True)
+            self.actions.menu_options(self.keys_value, self.actions.mode, speak=False, execute=True)
 
 
 
@@ -102,7 +109,7 @@ class mb_xinput_process():
             #exit_code = p.wait()        
         # cmd = ["xinput", "test", self.devid]
         cmd = ["python3.10", "/media/m1/data/KURULUM/phone/smart-band_test/smart-band/git/miband4/mb_band_cli.py"]
-        ps = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        ps = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=False)
 
         while True:
             # time.sleep(.2)
@@ -118,7 +125,6 @@ class mb_xinput_process():
 
             line=line.strip().decode('utf-8')
             print(line)
-
             
             p = ".*key press\s+(\d+)"
             match = re.search(p, line, re.RegexFlag.IGNORECASE)
@@ -130,6 +136,7 @@ class mb_xinput_process():
 
 
 
+    
 
 mb_xinput_process()
 print("main loop ended")
