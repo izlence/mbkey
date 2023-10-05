@@ -34,6 +34,21 @@ class mb_actions():
 
 		self.repeat_mode = mbMODE.NORMAL
 		self.repeat_keyval = 0
+		
+
+	def mark_media_position():
+		wins = mbpy.mbtools.mbwin.get_win_ids_by_name(".*mpv", 11)
+		print(wins)
+
+		if len(wins)>0: 
+			mbpy.mbtools.mbwin.run_cmd("xdotool windowraise " + str(wins[-1]))
+			mbpy.mbtools.mbwin.send_key_to_win(wins[-1], "ctrl+alt+b")
+
+		else: #TODO: chrome f4t script..
+			wins = mbpy.mbtools.mbwin.get_win_ids_by_name("Free4Talk - .*", 1)
+			if len(wins)>0: 
+				mbpy.mbtools.mbwin.run_cmd("xdotool windowraise " + str(wins[-1]))
+				mbpy.mbtools.mbwin.send_key_to_win(wins[-1], "ctrl+alt+b")
 
 
 	def play_next_mpv():
@@ -67,10 +82,9 @@ class mb_actions():
 
 		if len(wins)>0: 
 			mbpy.mbtools.mbwin.run_cmd("xdotool windowraise " + str(wins[-1]))
-			if pback:
-				mbpy.mbtools.mbwin.send_key_to_win(wins[-1], "Down")
-			else:
-				mbpy.mbtools.mbwin.send_key_to_win(wins[-1], "Up")
+			gkey = "Up"
+			if pback: gkey = "Down"
+			mbpy.mbtools.mbwin.send_key_to_win(wins[-1], gkey)
 				
 
 	
@@ -124,44 +138,53 @@ class mb_actions():
 
 		if pmode == mbMODE.NORMAL:
 			if pkeyval == 0:
-				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. toggle play")
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. toggle play", False)
 				if execute: mb_actions.mpv_toggle_play()
-			
+				return
 			elif pkeyval == 1:
-				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. play next")
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. play next", False)
 				if execute: mb_actions.play_next_mpv()
-			
+				return
 			elif pkeyval == 2:
-				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. jump back")
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. jump back", False)
 				if execute: mb_actions.mpv_jump(pback=True)
-			
+				return
 			elif pkeyval == 3:
-				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. change mpv speed")
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. change mpv speed", False)
 				if execute: mb_actions.mpv_change_speed()
-
+				return
 			elif pkeyval == 4:
-				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. play back burner")
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. play back burner", False)
 				cmd = "mb.yt.cli  --back_burner 411 &"
 				if execute: os.system(cmd)
 				# mbpy.mbtools.mbwin.run_bash_cmd(cmd)
-			
+				return
 			elif pkeyval == 5:
-				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. mark mpv pos")
-				cmd = "mb.xdgopen mbpy:mpv_mark_pos &" 
-				if execute: os.system(cmd)
-			
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. mark mpv pos", False)
+				if execute: mb_actions.mark_media_position()
+				return
 			elif pkeyval == 6:
-				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. disconnect Philips headphone")
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. disconnect Philips headphone", False)
 				cmd = "bluetoothctl disconnect 98:D3:31:05:DD:A8" 
 				if execute: os.system(cmd)
-			
+				return
+			elif pkeyval == 7:
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. place holder", False)
+			elif pkeyval == 8:
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. vol up", False)
+				cmd = "amixer -D pulse sset Master 5%+" 
+				if execute: os.system(cmd)
+				return
+			elif pkeyval == 9:
+				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. vol down", False)
+				cmd = "amixer -D pulse sset Master 5%-" 
+				if execute: os.system(cmd)
+				return
 			# elif pkeyval == 6:
 			# 	if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. re-connect Piranha speaker")
 			# 	cmd = "bluetoothctl disconnect 84:91:BB:A2:C4:FF ; sleep 1; bluetoothctl connect 84:91:BB:A2:C4:FF" 
 			# 	if execute: os.system(cmd)
-			
-			return
-			
+					
 		elif pmode == mbMODE.AUDACIOUS:
 
 			if pkeyval == 1:
@@ -170,40 +193,45 @@ class mb_actions():
 				if execute: 
 					mbpy.mbtools.mbwin.send_key("XF86AudioNext")
 					mbpy.mbtools.mbwin.run_bash_cmd(cmd)
+				return
 			elif pkeyval == 2:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. play previous")
 				cmd = "audtool playlist-reverse" 
 				if execute: 
 					mbpy.mbtools.mbwin.send_key("XF86AudioPrev")
 					mbpy.mbtools.mbwin.run_bash_cmd(cmd)
+				return
 			elif pkeyval == 3:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. audacious flag current media in mbplayer")
 				cmd = "mb.player.cli -audacious -flag -1 &" 
 				if execute: os.system(cmd)
+				return
 			elif pkeyval == 4:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. remove current song from audacious playlist")
 				cmd = "pos=$(audtool playlist-position); audtool playlist-delete $pos; audtool playlist-jump $pos;" 
 				if execute: mbpy.mbtools.mbwin.run_bash_cmd(cmd)
+				return
 			elif pkeyval == 5:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. toggle play")
 				cmd = "audtool playback-playpause" 
 				if execute: 
 					mbpy.mbtools.mbwin.send_key("XF86AudioPlay")
 					mbpy.mbtools.mbwin.run_bash_cmd(cmd)
+				return
 			
-			return
 		elif pmode == mbMODE.RANDOM_RANGE:
 			if pkeyval == 1:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. range play rate 4")
 				cmd = "mb.player.random_range --audio_only --play --rate 4 &"
 				if execute: os.system(cmd)
+				return
 			elif pkeyval == 2:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. next with voice changer")
 				cmd = "mb.player.random_range --next --voice_changer &" #play next range with voice changer
 				if execute:
 					self.set_repeat_action(pmode, pkeyval)
 					ret = os.system(cmd)
-					
+				return
 			elif pkeyval == 3:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. next range")
 				cmd = "mb.player.random_range --next 1" # &" #play next range from the last file
@@ -212,10 +240,12 @@ class mb_actions():
 					ret = os.system(cmd)
 					if ret == 0 and (time.time() - self.dt_last_execute) > 33: #if not eof
 						self.switch_mode(mbMODE.RATING)
+				return
 			elif pkeyval == 4:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. next range from previous")
 				cmd = "mb.player.random_range --next 2 &" #play next range from 2 before files
 				if execute: os.system(cmd)
+				return
 			elif pkeyval == 5:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. play range non-rated")
 				cmd = "mb.player.random_range --audio_only --play -rate 0" # &" #play next range from 2 before files
@@ -225,12 +255,13 @@ class mb_actions():
 					if ret == 0 and (time.time() - self.dt_last_execute) > 33: #if not eof
 						self.switch_mode(mbMODE.RATING)
 						# mbpy.mbtools.mbwin.speak("menu key to rate")
+				return
 			elif pkeyval == 6:
 				if speak: mbpy.mbtools.mbwin.speak(f"{pkeyval}. random latest")
 				cmd = "mb.player.random_range --random_latest" # &" 
 				if execute: os.system(cmd)
+				return
 			
-			return
 		elif pmode == mbMODE.RATING:
 			if pkeyval > 0 and pkeyval < 5:
 				if speak: mbpy.mbtools.mbwin.speak(f"Rate: {pkeyval}" )

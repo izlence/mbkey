@@ -28,6 +28,7 @@ class mb_xinput_process():
         # self.last_mode_change = 0
         self.dtlastkey = int(time.time()) - 55
         self.keys_value = 0
+        self.KEY_GROUP_DURATION = 11 #seconds after the last key to reset the keys value
 
         # self.mb_input = mb_input_value(mbTASK.UNSET, is_input_active=False)
 
@@ -66,18 +67,19 @@ class mb_xinput_process():
         #     self.mb_input.process_input(pkey=gkey)
         #     return
         
-        if int(time.time()) - self.dtlastkey > 15:
+        if int(time.time()) - self.dtlastkey > self.KEY_GROUP_DURATION:
             self.keys.clear()
             self.keys_value = 0
         self.dtlastkey = int(time.time())
 
         self.keys.insert(0, gkey)
-        print(self.keys)
+        # print(self.keys)
         
         # if len(self.keys) > 1 and self.keys[1] == mbKEY.PLAY and self.keys[0] == mbKEY.PLAY: #M3-vol up long : change mode
         if self.keys[0] == mbKEY.WATCHFACE_CHANGED:
+            mb_actions.mark_media_position()
             # mb_actions.mpv_toggle_play()
-            mbpy.mbtools.mbwin.send_key("XF86AudioPlay")
+            # mbpy.mbtools.mbwin.send_key("XF86AudioPlay")
             # if (self.last_mode_change < time.time() - 3):
             #     self.last_mode_change = time.time()
             #     self.actions.mode = self.actions.next_mode(self.actions.mode)
@@ -108,7 +110,7 @@ class mb_xinput_process():
             #(output, err) = p.communicate()
             #exit_code = p.wait()        
         # cmd = ["xinput", "test", self.devid]
-        cmd = ["python3.10", "/media/m1/data/KURULUM/phone/smart-band_test/smart-band/git/miband4/mb_band_cli.py"]
+        cmd = ["python3.10", "/home/mb/dev/python/mblib/individual/amazfitband5/mb_band_cli.py"]
         ps = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=False)
 
         while True:
