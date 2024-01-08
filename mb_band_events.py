@@ -27,7 +27,7 @@ class mb_xinput_process():
         # self.mode_quick = mbMODE.NORMAL
         # self.last_mode_change = 0
         self.dtlastkey = int(time.time()) - 55
-        self.keys_value = 0
+        # self.keys_value = 0
         self.KEY_GROUP_DURATION = 11 #seconds after the last key to reset the keys value
 
         # self.mb_input = mb_input_value(mbTASK.UNSET, is_input_active=False)
@@ -51,8 +51,12 @@ class mb_xinput_process():
         mbKEY = mbdevice.mbKEY
         
         while True:
-            self.main_loop()
-            time.sleep(11)
+            try:
+                self.main_loop()
+                time.sleep(11)
+            except:
+                print("main loop error")
+                time.sleep(11)
 
 
 
@@ -69,7 +73,7 @@ class mb_xinput_process():
         
         if int(time.time()) - self.dtlastkey > self.KEY_GROUP_DURATION:
             self.keys.clear()
-            self.keys_value = 0
+            self.actions.cur_key_val = 0
         self.dtlastkey = int(time.time())
 
         self.keys.insert(0, gkey)
@@ -86,7 +90,7 @@ class mb_xinput_process():
             return
         
         elif len(self.keys) > 2 and self.keys[2] == mbKEY.MUSIC_CLOSE and self.keys[1] == mbKEY.MUSIC_OPEN and self.keys[0] == mbKEY.MUSIC_CLOSE:
-            if (self.actions.dt_last_execute > time.time() - 600):
+            if (self.actions.dt_last_execute > time.time() - 1800):
                 self.actions.menu_options(101, mbMODE.DYNAMIC, speak=False, execute=True)
             
             return
@@ -95,11 +99,11 @@ class mb_xinput_process():
         if keynum == 0: return
 
         if gkey != mbKEY.PLAY: #confirm...
-            self.keys_value += keynum
-            self.actions.menu_options(self.keys_value, self.actions.mode, speak=True, execute=False)
+            self.actions.cur_key_val += keynum
+            self.actions.menu_options(self.actions.cur_key_val, self.actions.mode, speak=True, execute=False)
             
         else: 
-            self.actions.menu_options(self.keys_value, self.actions.mode, speak=False, execute=True)
+            self.actions.menu_options(self.actions.cur_key_val, self.actions.mode, speak=False, execute=True)
 
 
 
@@ -110,7 +114,7 @@ class mb_xinput_process():
             #(output, err) = p.communicate()
             #exit_code = p.wait()        
         # cmd = ["xinput", "test", self.devid]
-        cmd = ["python3.10", "/home/mb/dev/python/mblib/individual/amazfitband5/mb_band_cli.py"]
+        cmd = ["python3", "/home/mb/dev/python/mblib/individual/amazfitband5/mb_band_cli.py"]
         ps = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=False)
 
         while True:
