@@ -81,13 +81,37 @@ class mb_xinput_process():
         
         # if len(self.keys) > 1 and self.keys[1] == mbKEY.PLAY and self.keys[0] == mbKEY.PLAY: #M3-vol up long : change mode
         if self.keys[0] == mbKEY.WATCHFACE_CHANGED:
-            mb_actions.mark_media_position()
+            print("watchface changed")
+            mb_actions.mpv_change_filter()
+            mbpy.mbtools.mbwin.send_key("ctrl+alt+u")
+            # mb_actions.mark_media_position()
             # mb_actions.mpv_toggle_play()
             # mbpy.mbtools.mbwin.send_key("XF86AudioPlay")
             # if (self.last_mode_change < time.time() - 3):
             #     self.last_mode_change = time.time()
             #     self.actions.mode = self.actions.next_mode(self.actions.mode)
             return
+        
+        elif self.keys[0] == mbKEY.WORKOUT_WALKING:
+            # self.actions.switch_mode(mbMODE.NORMAL)
+            self.actions.next_mode()
+            return
+        elif self.keys[0] == mbKEY.WORKOUT_OUTDOOR_RUNNING:
+            # self.actions.switch_mode(mbMODE.RANDOM_RANGE)
+            # mbpy.mbtools.mbwin.speak(f"{pkeyval}. vol down", False)
+            cmd = "amixer -D pulse sset Master 10%+" 
+            os.system(cmd)
+            return
+        elif self.keys[0] == mbKEY.WORKOUT_TREADMILL:
+            # self.actions.switch_mode(mbMODE.MPVCUTS)
+            cmd = "amixer -D pulse sset Master 10%-" 
+            os.system(cmd)
+            return
+        elif self.keys[0] == mbKEY.WORKOUT_CYCLING:
+            cmd = "bash /home/mb/dev/script/bash/mb/tools/bt_change_profile.sh"
+            mbpy.mbtools.mbwin.run_cmd(cmd)
+            return
+        
         
         elif len(self.keys) > 2 and self.keys[2] == mbKEY.MUSIC_CLOSE and self.keys[1] == mbKEY.MUSIC_OPEN and self.keys[0] == mbKEY.MUSIC_CLOSE:
             if (self.actions.dt_last_execute > time.time() - 1800):
@@ -132,7 +156,7 @@ class mb_xinput_process():
             line=line.strip().decode('utf-8')
             print(line)
             
-            p = ".*key press\s+(\d+)"
+            p = ".*::::KEY:([0-9]+)"
             match = re.search(p, line, re.RegexFlag.IGNORECASE)
             if match == None: continue
             gkey = match.group(1)
